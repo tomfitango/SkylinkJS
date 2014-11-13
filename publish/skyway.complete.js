@@ -9396,6 +9396,7 @@ Skylink.prototype._roomLocked = false;
  * @param {Integer} [options.bandwidth.audio=50] Audio stream bandwidth in kbps.
  * @param {Integer} [options.bandwidth.video=256] Video stream bandwidth in kbps.
  * @param {Integer} [options.bandwidth.data=1638400] Data stream bandwidth in kbps.
+ * @param {Boolean} [options.manualGetUserMedia] Get the user media manually.
  * @example
  *   // To just join the default room without any video or audio
  *   // Note that calling joinRoom without any parameters
@@ -9457,7 +9458,7 @@ Skylink.prototype._roomLocked = false;
  *        'data' : 14480
  *      }
  *   });
- * @trigger peerJoined
+ * @trigger peerJoined, mediaAccessRequired
  * @for Skylink
  * @since 0.5.5
  */
@@ -9507,7 +9508,7 @@ Skylink.prototype.joinRoom = function(room, mediaOptions) {
  *   Recommended: 256 kbps.
  * @param {Integer} [options.bandwidth.data] Data stream bandwidth in kbps.
  *   Recommended: 1638400 kbps.
- * @trigger peerJoined, incomingStream
+ * @trigger peerJoined, incomingStream, mediaAccessRequired
  * @for Skylink
  * @since 0.5.5
  */
@@ -10737,6 +10738,14 @@ Skylink.prototype._EVENTS = {
    * @since 0.1.0
    */
   mediaAccessSuccess: [],
+
+  /**
+   * Event fired when it's required to have audio or video access.
+   * @event mediaAccessRequired
+   * @for Skylink
+   * @since 0.5.5
+   */
+  mediaAccessRequired: [],
 
   /**
    * Event fired when a peer joins the room.
@@ -12776,6 +12785,7 @@ Skylink.prototype._muteLocalMediaStreams = function (mutedOptions) {
  * @param {String} [options.bandwidth.audio=50] Audio Bandwidth
  * @param {String} [options.bandwidth.video=256] Video Bandwidth
  * @param {String} [options.bandwidth.data=1638400] Data Bandwidth
+ * @trigger mediaAccessRequired
  * @private
  * @for Skylink
  * @since 0.5.5
@@ -12789,11 +12799,13 @@ Skylink.prototype._waitForLocalMediaStream = function(callback, options) {
   self._parseBandwidth(options.bandwidth);
 
   // get the stream
-  getUserMedia({
-    audio: options.audio,
-    video: options.video
-  });
-
+  if (options.manualGetUserMedia === true) {
+    self._trigger('mediaAccessRequired');
+    getUserMedia({
+      audio: options.audio,
+      video: options.video
+    });
+  }
   // If options video or audio false, do the opposite to throw a true.
   var requireAudio = !!this._streamSettings.audio;
   var requireVideo = !!this._streamSettings.video;
