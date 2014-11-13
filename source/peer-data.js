@@ -73,9 +73,7 @@ Skylink.prototype.setUserData = function(userData) {
   // NOTE ALEX: be smarter and copy fields and only if different
   self._condition('readyStateChange', function () {
     self._wait(function () {
-      self._user.info = self._user.info || {};
-      self._user.info.userData = userData ||
-        self._user.info.userData || {};
+      self._parseUserData(userData);
 
       if (self._inRoom) {
         log.log('Updated userData -> ', userData);
@@ -112,6 +110,23 @@ Skylink.prototype.getUserData = function() {
   return (this._user) ?
     ((this._user.info) ? (this._user.info.userData || '')
     : '') : '';
+};
+
+/**
+ * Parse user data
+ * @method _parseUserData
+ * @param {JSON} [userData] User custom data.
+ * @private
+ * @for Skylink
+ * @since 0.5.5
+ */
+Skylink.prototype._parseUserData = function(userData) {
+  log.debug('Parsing user data:', userData);
+
+  this._user = this._user || {};
+  this._user.info = this._user.info || {};
+  this._user.info.userData = userData || null;
+
 };
 
 /**
